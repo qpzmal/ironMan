@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+  
+<!-- 定义一个工程，默认任务为warFile。 -->  
+<project name="freezwscManage" default="warFile" basedir=".">
+      
+    <!-- 定义属性，打成war包的名称。 -->  
+    <property name="warFileName" value="freezwscManage.war"></property>
+
+    <property name="generated.source.dir" value="${basedir}" />
+    <!-- 使用ant生成mybatis相关代码 -->
+    <property name="mbgenerator.classpath" value="E:/software/green/maven_repo/org/mybatis/generator/mybatis-generator-core/1.3.5/mybatis-generator-core-1.3.5.jar" />
+
+    <!-- 定义路径，编译java文件时用到的jar包。 -->  
+    <path id="project.lib">  
+        <fileset dir="${basedir}/lib">
+            <include name="**/*.jar"/>  
+        </fileset>  
+    </path>  
+      
+    <!-- 定义任务，清空任务：清空原有的class文件，创建新的build路径。 -->  
+    <target name="clean">  
+        <delete dir="${basedir}/build" />  
+        <mkdir dir="${basedir}/build" />  
+    </target>  
+      
+    <!-- 定义任务，编译src文件夹中的java文件，编译后的class文件放到创建的文件夹下。 -->  
+    <target name="compile" depends="clean">  
+        <javac target="1.7" srcdir="${basedir}/src" destdir="${basedir}/build" includeantruntime="false" debug="true" encoding="utf-8">
+            <classpath refid="project.lib">  
+            </classpath>  
+        </javac>  
+        <copy todir="${basedir}/build">
+            <fileset dir="${basedir}/resources">
+                <include name="**/**.*" />
+            </fileset>
+        </copy>
+    </target>  
+      
+    <!-- 定义默认任务，将class文件集合成jar包。 -->  
+    <target name="warFile" depends="compile">  
+        <!-- 删除原有war包。 -->  
+        <delete dir="${basedir}/${warFileName}" />  
+        <!-- 建立新war包。 -->  
+        <war destfile="${basedir}/${warFileName}" webxml="${basedir}/web/WEB-INF/web.xml">
+            <!-- 将非jar和非class文件拷贝到war包的对应路径下。 -->  
+            <fileset dir="${basedir}/web">
+                <include name="**/**.*" />  
+                <include name="**" />  
+                <exclude name="**/*.jar"/>  
+                <exclude name="**/*.class"/>  
+            </fileset>  
+            <!-- 将jar和class文件拷贝到war包的对应路径下。 -->  
+            <lib dir="${basedir}/web/WEB-INF/lib" />
+            <classes dir="${basedir}/build" />  
+        </war>  
+    </target>
+
+    <!-- 使用ant生成mybatis相关代码 -->
+    <target name="genfiles" description="Generate the files">
+        <taskdef name="mbgenerator"
+                 classname="org.mybatis.generator.ant.GeneratorAntTask"
+                 classpath="${mbgenerator.classpath}" />
+        <mbgenerator overwrite="true" configfile="generatorConfig.xml" verbose="false" >
+            <propertyset>
+                <propertyref name="generated.source.dir"/>
+            </propertyset>
+        </mbgenerator>
+    </target>
+</project>
