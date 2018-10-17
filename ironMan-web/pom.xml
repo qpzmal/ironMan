@@ -40,6 +40,14 @@
   
 
   <dependencies>
+  
+    <dependency>
+      <groupId>com.fighttiger.fighter</groupId>
+      <artifactId>ironMan-common</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+    </dependency>
+  
+  
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-core</artifactId>
@@ -54,6 +62,25 @@
         </exclusion>
       </exclusions>
     </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-webmvc</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>commons-logging</groupId>
+          <artifactId>commons-logging</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-context-support</artifactId>
+    </dependency>
+    
+    
+    
+    
+    
     <dependency>
       <groupId>org.apache.velocity</groupId>
       <artifactId>velocity</artifactId>
@@ -86,20 +113,6 @@
         </exclusion>
       </exclusions>
     </dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-webmvc</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>commons-logging</groupId>
-          <artifactId>commons-logging</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-context-support</artifactId>
-    </dependency>
 
     <dependency>
       <groupId>commons-beanutils</groupId>
@@ -120,10 +133,31 @@
       <artifactId>log4j</artifactId>
     </dependency>
     
+    
+    
+    
     <dependency>
-        <groupId>com.alibaba</groupId>
-        <artifactId>fastjson</artifactId>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-core</artifactId>
     </dependency>
+    <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>javax.mail</groupId>
+        <artifactId>mail</artifactId>
+    </dependency>
+    
+    
+    
+    
+    
+    
+<!--     <dependency> -->
+<!--         <groupId>com.alibaba</groupId> -->
+<!--         <artifactId>fastjson</artifactId> -->
+<!--     </dependency> -->
   </dependencies>
 
 
@@ -226,7 +260,7 @@
       
         <groupId>org.eclipse.jetty</groupId>
         <artifactId>jetty-maven-plugin</artifactId>
-        <version>9.3.23-SNAPSHOT</version>
+        <version>9.4.10.v20180503</version>
         <configuration>
           <scanIntervalSeconds>3</scanIntervalSeconds>
           <webDefaultXml>src/main/resources/webdefault.xml</webDefaultXml>

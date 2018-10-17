@@ -1,0 +1,185 @@
+package com.fighttiger.fighter.ironman.tools.mail;
+
+import java.io.IOException;
+import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
+
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
+
+/**
+ * Created by zhanglei on 2016/12/29.
+ */
+
+import org.apache.log4j.Logger;
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.VelocityEngine;
+import org.apache.velocity.exception.VelocityException;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.ui.velocity.VelocityEngineUtils;
+
+/**
+ * spring发送mail工具
+ */
+public class MailUtilVelocity {
+    private static Logger LOGGER = Logger.getLogger(MailUtilVelocity.class);
+
+    private MailUtilVelocity(){}
+
+    private static class InstanceHolder {
+        private static  MailUtilVelocity instance = new MailUtilVelocity();
+    }
+
+    public static  MailUtilVelocity getInstance()
+    {
+        return InstanceHolder.instance;
+    }
+
+    private JavaMailSender javaMailSender;
+    private VelocityEngine velocityEngine; //模板解析
+
+
+    /**
+     * @param mailBean
+     * @return
+     * @throws MessagingException
+     */
+    public  boolean send(MailBean mailBean) throws MessagingException
+    {
+        MimeMessage msg = createMimeMessage(mailBean);
+        if(msg == null){
+            return false;
+        }
+
+        sendMail(msg, mailBean);
+        return true;
+    }
+
+    private  void sendMail(MimeMessage msg, MailBean mailBean){
+        String result = null;
+        try {
+            result = VelocityEngineUtils.mergeTemplateIntoString(velocityEngine, mailBean.getTemplate(), "UTF-8",mailBean.getData());
+            msg.setText(result);
+            javaMailSender.send(msg);
+        } catch (Exception e) {
+            LOGGER.error("邮件异常：", e);
+        }
+
+        // 非模版发送
+//        javaMailSender.send(msg);
+//        LOGGER.info("$$$ Send mail Subject:" +  mailBean.getSubject()
+//                + ", TO:" + arrayToStr(mailBean.getToEmails()) );
+
+    }
+
+    /*
+     * 记日记用的
+     */
+    private String arrayToStr(String[] array){
+        if(array == null || array.length == 0){
+            return null;
+        }
+        StringBuffer sb = new StringBuffer();
+        for(String str : array){
+            sb.append(str+" , ") ;
+        }
+        return sb.toString();
+    }
+
+    /*
+     * 根据 mailBean 创建 MimeMessage
+     */
+    private  MimeMessage createMimeMessage(MailBean mailBean) throws MessagingException
+    {
+        if (!checkMailBean(mailBean)) {
+            return null;
+        }
+        String text = getMessage(mailBean);
+        if(text == null){
+            LOGGER.warn("@@@ warn mail text is null (Thread name="
+                    + Thread.currentThread().getName() + ") @@@ " +  mailBean.getSubject());
+            return null;
+        }
+        MimeMessage msg = javaMailSender.createMimeMessage();
+        MimeMessageHelper messageHelper = new MimeMessageHelper(msg, true, "UTF-8");
+        //messageHelper.setFrom(mailBean.getFrom());
+        try {
+            messageHelper.setFrom(mailBean.getFrom(), mailBean.getFromName());
+        } catch (UnsupportedEncodingException e) {
+            LOGGER.error(e);
+
+        }
+        if(mailBean.getCc() != null){
+            String[] split = mailBean.getCc().split(",");
+            messageHelper.setCc(split);
+        }
+        messageHelper.setSubject(mailBean.getSubject());
+        messageHelper.setTo(mailBean.getToEmails());
+        messageHelper.setText(text, true); // html: true
+
+        return msg;
+    }
+
+    /*
+     * 模板解析
+     * @param mailBean
+     * @return
+     */
+    private String getMessage(MailBean mailBean)
+    {
+        StringWriter writer = null;
+        try {
+
+            writer = new StringWriter();
+            VelocityContext context = new VelocityContext(mailBean.getData());
+
+            velocityEngine.evaluate(context, writer, "", mailBean.getTemplate());
+
+            return writer.toString();
+        } catch (VelocityException e) {
+            LOGGER.error(" VelocityException : " + mailBean.getSubject() + "\n" + e);
+        } finally {
+            if (writer != null) {
+                try {
+                    writer.close();
+                } catch (IOException e) {
+                    LOGGER.error("###StringWriter close error ... ");
+                }
+            }
+        }
+        return null;
+    }
+
+    /*
+     * check 邮件
+     */
+    private  boolean checkMailBean(MailBean mailBean) {
+        if (mailBean == null) {
+            LOGGER.warn("@@@ warn mailBean is null (Thread name=" + Thread.currentThread().getName() + ") ");
+            return false;
+        }
+        if (mailBean.getSubject() == null) {
+            LOGGER.warn("@@@ warn mailBean.getSubject() is null (Thread name=" + Thread.currentThread().getName() + ") ");
+            return false;
+        }
+        if (mailBean.getToEmails() == null) {
+            LOGGER.warn("@@@ warn mailBean.getToEmails() is null (Thread name=" + Thread.currentThread().getName() + ") ");
+            return false;
+        }
+        if (mailBean.getTemplate() == null) {
+            LOGGER.warn("@@@ warn mailBean.getTemplate() is null (Thread name=" + Thread.currentThread().getName() + ") ");
+            return false;
+        }
+        return true;
+    }
+
+    public void setJavaMailSender(JavaMailSender javaMailSender) {
+        this.javaMailSender = javaMailSender;
+    }
+
+    public void setVelocityEngine(VelocityEngine velocityEngine) {
+        this.velocityEngine = velocityEngine;
+    }
+
+}
